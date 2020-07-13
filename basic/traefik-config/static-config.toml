@@ -1,0 +1,39 @@
+    [entryPoints]
+      [entryPoints.ping]
+         address = ":5555"
+      [entryPoints.web]
+         address = ":80"
+         [entryPoints.web.forwardedHeaders]
+           insecure = true
+      [entryPoints.websecure]
+         address = ":443"
+    [api]
+       dashboard = true
+       # TODO: make this secure later
+       insecure = true  
+    [ping]
+       entryPoint = "ping"
+    [log]
+       level = "INFO"
+       format = "json"
+    [accessLog]
+    [metrics]
+       [metrics.prometheus]
+          #buckets = [42.0, 42.0]
+          addEntryPointsLabels = true
+          addServicesLabels = true
+          #entryPoint = "foobar"
+          #manualRouting = true
+    [providers]
+       [providers.file]
+          filename = "/config/dynamic-config.toml"
+          watch = true
+       [providers.kubernetesIngress]
+          namespaces = ["default", "dev"]
+          disablePassHostHeaders = false
+          ingressClass = "traefik"
+       [providers.kubernetesCRD]
+          throttleDuration = "2s"
+          namespaces = ["default", "dev"]
+          disablePassHostHeaders = false
+          ingressClass = "traefik"

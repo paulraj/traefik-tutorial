@@ -1,0 +1,39 @@
+    [http]
+      [http.routers]
+       [http.routers.dashboard-ui]
+            entryPoints = ["websecure"]
+            service = "api@internal"
+            rule = "HostRegexp(`{subdomain:[a-z1-9.-]+}.maindomain.com`) && PathPrefix(`/api/v1/{token:[a-z1-9]+}/endpoint1`) && Method(`POST`,`PUT`)"  
+            service = "external-api-1"
+            middlewares = ["cors", "csp", "svc-ratelimit","svc-retry"]
+            priority = 10
+        [http.routers.mcps_metadata-api_router]
+            rule = "HostRegexp(`{subdomain:[a-z0-9.-]+}.maindomain.com`) && ( PathPrefix(`/api/v1`, `/endpoint`) || PathPrefix(`/v1/api/`, `/endpoint2`) ) && Method(`GET`,`PUT`,`HEAD`,`TRACE`,`OPTIONS`,`PATCH`,`CONNECT`,`DELETE`)"
+            service = "external-api-2"
+            middlewares = ["cors", "csp", "svc-ratelimit","svc-retry"]
+      [http.services]
+        [http.services.external-api-1.loadBalancer]
+            [[http.services.external-api-1.loadBalancer.servers]]
+                url = "http://non-dockerized-service/endpoint1"
+        [http.services.external-api-2.loadBalancer]
+            [[http.services.external-api-2.loadBalancer.servers]]
+                url = "http://non-dockerized-service/endpoint2"
+      [http.middlewares]
+        [http.middlewares.csp.headers]
+            accessControlAllowOrigin = "null"
+            customFrameOptionsValue = "SAMEORIGIN"
+            contentTypeNosniff = true
+            browserXssFilter = true
+            referrerPolicy = "strict-origin"
+            contentSecurityPolicy = "default-src 'self'; connect-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'unsafe-inline'; style-src-elem 'self' 'unsafe-inline'; font-src 'self' 'unsafe-inline'; object-src 'self'; media-src 'self'; img-src 'self' data: blob: ; frame-src 'self'; worker-src 'self'; report-uri /api/v1/csp-report"
+            featurePolicy = "notifications 'none'; camera 'none'"
+        [http.middlewares.cors.headers]
+            accessControlAllowMethods= ["GET", "OPTIONS", "PUT"]
+            accessControlAllowOriginList = ["http://yourdomain.com","https://yourdomain2.com"]
+            accessControlMaxAge = 100
+            addVaryHeader = true
+        [http.middlewares.svc-ratelimit.rateLimit]
+            average = 10
+            burst = 10
+        [http.middlewares.svc-retry.retry]
+            attempts = 3

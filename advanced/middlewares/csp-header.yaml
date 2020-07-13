@@ -1,0 +1,15 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+annotations:
+    kubernetes.io/ingress.class: traefik
+metadata:
+  name: csp-header
+spec:
+  headers:
+    customFrameOptionsValue: "SAMEORIGIN"
+    accessControlAllowOrigin: "null"
+    contentTypeNosniff: true
+    browserXssFilter: true
+    referrerPolicy: "strict-origin"
+    contentSecurityPolicy: "default-src 'self'; connect-src 'self' ; script-src 'self' 'unsafe-eval'; style-src 'unsafe-inline' 'self'; style-src-elem 'self' 'unsafe-inline'; font-src 'self' 'unsafe-inline'; object-src 'self'; media-src 'self'; img-src 'self' data: blob: ; frame-src 'self'; worker-src 'self'; report-uri /api/v1/csp-report"
+    featurePolicy: "notifications 'none'; camera 'none'"

@@ -1,0 +1,61 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: traefik-deployment
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      terminationGracePeriodSeconds: 60
+      containers:
+      - image: iad.ocir.io/cxunitydevcorp/traefik:2.2.1
+        name: traefik
+        volumeMounts:
+        - mountPath: /config
+          name: config
+        ports:
+        - name: http
+          containerPort: 80  
+        - name: admin
+          containerPort: 8080
+        - name: https
+          containerPort: 443
+        - name: ping
+          containerPort: 5555
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 5555
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 5555
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        args:
+        - --configfile=/config/static-config.toml
+      imagePullSecrets:
+      - name: ocirsecret
+      volumes:
+      - name: config
+        configMap:
+          name: traefik-config

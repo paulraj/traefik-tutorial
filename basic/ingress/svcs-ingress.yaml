@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: services-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: 
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: yorwebsite-ui
+          servicePort: 9091
+      - path: /api/v1/profile
+        backend:
+          serviceName: profile
+          servicePort: 9090 
+      - path: /api/v1/home
+        backend:
+          serviceName: home
+          servicePort: 9090 

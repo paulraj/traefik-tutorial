@@ -1,0 +1,40 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: services-ingress-routes
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: PathPrefix(`/`)
+    kind: Rule
+    middlewares:
+    - name: csp-header
+    - name: cors-header
+    - name: retry
+    - name: ratelimit
+    services:
+    - name: mywebsite-ui
+      port: 9091
+  - match: PathPrefix(`/yourschema/home`) || PathPrefix(`/private/yourschema/home`)
+    kind: Rule
+    middlewares:
+    - name: csp-header
+    - name: cors-header
+    - name: retry
+    - name: ratelimit
+    services:
+    - name: home
+      port: 9090
+  - match: HostRegexp(`{subdomain:[a-z0-9.-]+}.yoursite.com`) && PathPrefix(`/api-profile/v1`,`/profile`) && Method(`GET`, `POST`, `PUT`)
+    kind: Rule
+    middlewares:
+    - name: csp-header
+    - name: cors-header
+    - name: retry
+    - name: ratelimit
+    services:
+    - name: profile
+      port: 9090
